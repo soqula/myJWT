@@ -1,0 +1,11 @@
+# dirs
+__pycache__
+.venv
+media
+logs
+
+# files
+db.sqlite3
+.env
+.vscode/settings.json
+memo.txt
