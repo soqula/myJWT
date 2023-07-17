@@ -18,3 +18,9 @@ class HistoryWeight(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     saved_at = models.DateField(verbose_name="記録日")
     weight = models.FloatField(verbose_name="体重", default=0)
+
+    def __str__(self):
+        return str(self.saved_at) + ":" + str(self.weight)
+    class Meta:
+        verbose_name="体重履歴"
+        verbose_name_plural="体重履歴"

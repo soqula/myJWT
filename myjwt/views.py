@@ -8,3 +8,5 @@ from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 class MyWightListView(viewsets.ModelViewSet):
     queryset = HistoryWeight.objects.all()
     serializer_class = HistoryWeightSerializer
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
