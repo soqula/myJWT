@@ -37,5 +37,5 @@ class HistoryWeightSerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoryWeight
         fields = (
-            'user', 'saved_at','weight',
+            'id','user', 'saved_at','weight',
         )

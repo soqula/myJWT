@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 from dotenv import load_dotenv
 import os
+import datetime
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,7 +28,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost","10.0.2.2","127.0.0.1"]
 
 
 # Application definition
@@ -139,6 +140,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:8000',
+    'http://10.0.2.2:8000',
 ]
 
 REST_FRAMEWORK = {
@@ -158,3 +160,6 @@ REST_FRAMEWORK = {
 #     'JWT_EXPIRATION_DELTA': timedelta(days=7),
 #     'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=28),
 # }
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=20),
+}

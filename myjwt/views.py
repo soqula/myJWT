@@ -3,6 +3,8 @@ from .models import HistoryWeight
 from .serializers import HistoryWeightSerializer
 from rest_framework import generics
 from rest_framework import viewsets
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 
 class MyWightListView(viewsets.ModelViewSet):
@@ -10,3 +12,7 @@ class MyWightListView(viewsets.ModelViewSet):
     serializer_class = HistoryWeightSerializer
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
+
+class MyUserIDView(APIView):
+    def get(self,request,format=None):
+        return Response({"id":request.user.id})
