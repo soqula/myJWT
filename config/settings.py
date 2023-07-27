@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-from dotenv import load_dotenv
+import environ
 import os
 import datetime
 from pathlib import Path
@@ -17,16 +17,17 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / "auth/.env")
+env = environ.Env()
+env.read_env(BASE_DIR / "auth/.env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG")
+DEBUG = env.bool('DEBUG')
 
 ALLOWED_HOSTS = ["localhost","10.0.2.2","127.0.0.1"]
 
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'config.middleware.PerformanceMiddlware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -128,6 +130,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = env('STATIC_ROOT')
+MEDIA_ROOT = env('MEDIA_ROOT')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -164,4 +169,115 @@ REST_FRAMEWORK = {
 # }
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=20),
+}
+
+LOGGING = {
+    'version': 1, # 今は１のみ
+    'disable_existing_loggers': False,  # デフォルトのログを無効にする(Falseでいい）
+    'formatters': {
+        'normal_f': {
+            # 'format': '%(asctime)s %(levelname)s [%(pathname)s:%(lineno)d] %(message)s',
+            'format': "{asctime} {levelname} [{pathname}:{lineno}] {message}",
+            "style": "{", # '%', '{', '$' のうち1つ。defaultは'%'
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+        "simple2": {
+            "format": "{asctime} {levelname} {message}",
+            "style": "{",
+        },
+    },
+    "filters": {
+        "special": {
+            "password": "ぱすわーど",
+        },
+    },
+    'handlers': {
+        'console_handler': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'normal_f',
+        },
+        'timed_file_handler': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join('logs', 'app.log'),
+            'when': 'H', # ローテートのタイミング S:秒/M:分/H:時/D:日 
+            'interval': 1, # whenでの単位毎(when:Sで、interval:30は、３０秒毎)
+            'backupCount': 10, # 履歴の数
+            'formatter': 'normal_f',
+            'encoding': 'utf-8',
+            'delay': True,
+            # "filters": ["special"],
+        },
+        'timed_sql_handler': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join('logs', 'app_sql.log'),
+            'when': 'H', # ローテートのタイミング S:秒/M:分/H:時/D:日 
+            'interval': 1, # whenでの単位毎(when:Sで、interval:30は、３０秒毎)
+            'backupCount': 10, # 履歴の数
+            'formatter': 'simple2',
+            'encoding': 'utf-8',
+            'delay': True,
+            # "filters": ["special"],
+        },
+        'size_file_handler': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join('logs', 'app_s.log'),
+            'maxBytes': 1024, 
+            'backupCount': 10, # 履歴の数
+            'formatter': 'normal_f',
+            'encoding': 'utf-8',
+            'delay': True,
+        },
+        'timed_error_handler': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join('logs', 'app_error.log'),
+            'when': 'H',# ローテートのタイミング S:秒/M:分/H:時/D:日 
+            'interval': 2,# whenでの単位毎(when:Sで、interval:30は、３０秒毎)
+            'backupCount': 24,# 履歴の数
+            'formatter': 'normal_f',
+            'encoding': 'utf-8',
+            'delay': True,
+        },
+        'timed_performance_handler': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join('logs', 'app_perf.log'),
+            'when': 'H',# ローテートのタイミング S:秒/M:分/H:時/D:日 
+            'interval': 1,# whenでの単位毎(when:Sで、interval:30は、３０秒毎)
+            'backupCount': 24,# 履歴の数
+            'formatter': 'simple2',
+            'encoding': 'utf-8',
+            'delay': True,
+        }
+    },
+    'loggers': {
+        'application-logger': {
+            'handlers': ['console_handler', 'timed_file_handler'],
+            'level': 'DEBUG',
+            'propagate': False,
+            "filters": ["special"],
+        },
+        'error-logger': {
+            'handlers': ['timed_error_handler'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'performance-logger': {
+            'handlers': ['timed_performance_handler'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console_handler', 'timed_sql_handler'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    }
 }
